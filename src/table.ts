@@ -567,6 +567,24 @@ export class Session extends EventEmitter implements ICreateSessionResult {
         return ExecuteQueryResult.decode(payload);
     }
 
+    @pessimizable
+    public async executeSchemeQuery(
+        query: string,
+        settings?: ExecuteQuerySettings,
+    ): Promise<void> {
+        this.logger.trace('schemaQuery %o', query);
+        const request: Ydb.Table.IExecuteSchemeQueryRequest = {
+            sessionId: this.sessionId,
+            yqlText: query,
+        };
+        if (settings) {
+            request.operationParams = settings.operationParams;
+        }
+
+        const response = await this.api.executeSchemeQuery(request);
+        ensureOperationSucceeded(this.processResponseMetadata(request, response))
+    }
+
     private processResponseMetadata(
         request: object,
         response: AsyncResponse,
